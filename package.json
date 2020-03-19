@@ -1,0 +1,15 @@
+{
+    "name": "@wm/remarkjs-themes",
+    "description": "Wavemaker theming and templating base for remarkjs.",
+    "scripts": {
+        "build": "",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "devDependencies": {
+        "grunt": "1.0.4",
+        "grunt-contrib-clean": "2.0.0",
+        "grunt-contrib-copy": "1.0.0",
+        "matchdep": "2.0.0",
+        "wmsicon": "wavemaker/wmsicon"
+    }
+}
