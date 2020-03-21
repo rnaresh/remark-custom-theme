@@ -11,21 +11,20 @@ module.exports = function (grunt) {
                 files: [
                     {
                         expand: true,
-                        cwd: './node_modules/wmsicon/dist/wmsicon',
-                        dest: './dist/wm-remark-themes',
-                        src: [
-                            './**/*',
-                            '!./**/*.html'
-                        ]
-                    },
-                    {
-                        expand: true,
                         cwd: './src',
-                        dest: './dist/wm-remark-themes',
+                        dest: './dist',
                         src: [
                             './**/*'
                         ]
                     }
+                ]
+            }
+        },
+        run: {
+            build: {
+                cmd: 'node',
+                args: [
+                    'build-slides.js'
                 ]
             }
         }
@@ -35,7 +34,8 @@ module.exports = function (grunt) {
 
     grunt.registerTask('build', [
         'clean',
-        'copy'
+        'copy',
+        'run'
     ]);
 
     grunt.registerTask('default', ['build']);
