@@ -12,6 +12,7 @@
         "grunt-run": "^0.8.1",
         "markdown-to-slides": "1.0.5",
         "matchdep": "2.0.0",
+        "optimist": "^0.6.1",
         "remark": "11.0.2",
         "wmsicon": "wavemaker/wmsicon"
     }
