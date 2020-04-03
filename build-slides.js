@@ -16,6 +16,8 @@ let isWatchModeEnabled = !!argv.watch;
 
 const srcDirPath = path.join(__dirname, slidesConfig.src);
 const outDirPath = path.join(__dirname, slidesConfig.output);
+createDir(outDirPath);
+
 const customTemplate = path.join(__dirname, slidesConfig.template);
 
 const distTemplateFile = path.join(__dirname, slidesConfig.output + "/index.template.html");
@@ -28,9 +30,6 @@ function init() {
     fs.readdir(srcDirPath, function (err, files) {
         if (err) {
             return console.log('Unable to scan directory: ' + err);
-        }
-        if (!fs.existsSync(outDirPath)) {
-            fs.mkdirSync(outDirPath);
         }
         files.forEach(function (file) {
             let command = 'npx markdown-to-slides -l '+ distTemplateFile + ' ' + getSrcFile(file) + ' -o ' + getDestFile(file);
@@ -68,6 +67,12 @@ function createDistTemplateFile() {
         });
     });
 
+}
+
+function createDir(dir) {
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
 }
 
 init();
