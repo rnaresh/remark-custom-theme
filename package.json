@@ -1,5 +1,6 @@
 {
-    "name": "@wm/remarkjs-themes",
+    "name": "@nareshr/remarkjs-themes",
+    "version": "1.0.0",
     "description": "Wavemaker theming and templating base for remarkjs.",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
