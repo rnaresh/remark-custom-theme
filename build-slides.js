@@ -1,51 +1,64 @@
 const path = require('path');
 const fs = require('fs');
-const {exec} = require('child_process');
+const {execSync} = require('child_process');
 
 require('dotenv').config();
 
 const slidesConfig = {
     "src": process.env.REMARK_SLIDES_SRC || "src/md",
     "output": process.env.REMARK_SLIDES_OUTPUT || "dist/",
-    "template": process.env.REMARK_SLIDES_TEMPLATE || "src/index.dynamic.template.html",
-    "static_dir": process.env.REMARK_STATIC_DIR || "."
+    "templateSrc": process.env.REMARK_SLIDES_TEMPLATES_SRC || "src",
+    "contentTemplate": process.env.REMARK_SLIDES_TEMPLATES_SRC + "/" + process.env.REMARK_SLIDES_CONTENT_TEMPLATE || "src/index.dynamic.template.html",
+    "staticDir": process.env.REMARK_STATIC_DIR || "."
 };
 const argv = require('optimist').argv;
 
 let isWatchModeEnabled = !!argv.watch;
 
 const srcDirPath = path.join(__dirname, slidesConfig.src);
+const templatesSrc = path.join(__dirname, slidesConfig.templateSrc);
+
 const outDirPath = path.join(__dirname, slidesConfig.output);
 createDir(outDirPath);
 
-const customTemplate = path.join(__dirname, slidesConfig.template);
+const customTemplate = path.join(__dirname, slidesConfig.contentTemplate);
 
 const distTemplateFile = path.join(__dirname, slidesConfig.output + "/index.template.html");
 
-const staticDir = slidesConfig.static_dir;
+const staticDir = slidesConfig.staticDir;
+
+let templatesConfigJson = {
+    "header": "",
+    "footer": ""
+};
 
 function init() {
+    initHeaderFooterTemplates();
+
     createDistTemplateFile();
 
-    fs.readdir(srcDirPath, function (err, files) {
-        if (err) {
-            return console.log('Unable to scan directory: ' + err);
+    let files = fs.readdirSync(srcDirPath);
+
+    files.forEach(function (file) {
+        let command = 'npx markdown-to-slides -l ' + distTemplateFile + ' ' + getSrcFile(file) + ' -o ' + getDestFile(file);
+        if (isWatchModeEnabled) {
+            command = 'npx markdown-to-slides -w -l ' + distTemplateFile + ' ' + getSrcFile(file) + ' -o ' + getDestFile(file);
         }
-        files.forEach(function (file) {
-            let command = 'npx markdown-to-slides -l '+ distTemplateFile + ' ' + getSrcFile(file) + ' -o ' + getDestFile(file);
-            if(isWatchModeEnabled) {
-                command = 'npx markdown-to-slides -w -l '+ distTemplateFile + ' ' + getSrcFile(file) + ' -o ' + getDestFile(file);
-            }
-            exec(command, function (e, stdout, stderr) {
-                console.log(stderr);
-                if (e) throw e;
-            });
-        });
+
+        execSync(command);
     });
 }
 
 function getSrcFile(mdFileName) {
-    return path.join(srcDirPath, mdFileName);
+    const srcFile = path.join(srcDirPath, mdFileName);
+    const srcTmpFile = path.join(outDirPath, path.parse(mdFileName).name + ".tmp.md");
+
+    replacePlaceHolders(srcFile, srcTmpFile, {
+        "{{header}}": templatesConfigJson.header,
+        "{{footer}}": templatesConfigJson.footer
+    });
+
+    return srcTmpFile;
 }
 
 function getDestFile(mdFileName) {
@@ -53,26 +66,38 @@ function getDestFile(mdFileName) {
 }
 
 function createDistTemplateFile() {
-    fs.copyFile(customTemplate, distTemplateFile, (err) => {
-        if (err) throw err;
-    });
+    replacePlaceHolders(customTemplate, distTemplateFile, {"{{staticPath}}": staticDir});
+}
 
-    fs.readFile(distTemplateFile, 'utf8', function (err,data) {
-        if (err) return console.log(err);
+function replacePlaceHolders(srcFile, destFile, placeHolderObj) {
+    let data = fs.readFileSync(srcFile, 'utf8');
 
-        var result = data.replace(/{{staticPath}}/g, staticDir);
+    for (const plcHldr in placeHolderObj) {
+        data = data.replace(new RegExp(plcHldr, "ig"), placeHolderObj[plcHldr]);
+    }
 
-        fs.writeFile(distTemplateFile, result, 'utf8', function (err) {
-            if (err) return console.log(err);
-        });
-    });
-
+    fs.writeFileSync(destFile, data, 'utf8')
 }
 
 function createDir(dir) {
-    if (!fs.existsSync(dir)){
+    if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 }
 
+function initHeaderFooterTemplates() {
+    templatesConfigJson["header"] = fs.readFileSync(templatesSrc + "/header.template.html", 'utf8');
+    templatesConfigJson["footer"] = fs.readFileSync(templatesSrc + "/footer.template.html", 'utf8');
+}
+
+function cleanUpTmpFiles() {
+    let files = fs.readdirSync(outDirPath);
+    files.forEach(function (file) {
+        if (path.parse(file).name.indexOf("tmp") !== -1) {
+            fs.unlinkSync(path.join(outDirPath, file));
+        }
+    });
+}
+
 init();
+cleanUpTmpFiles();

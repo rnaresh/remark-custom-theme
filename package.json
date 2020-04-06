@@ -6,7 +6,11 @@
         "type": "git",
         "url": "https://github.com/rnaresh/remark-custom-theme.git"
     },
-    "keywords": ["remarkjs", "WaveMaker", "theme"],
+    "keywords": [
+        "remarkjs",
+        "WaveMaker",
+        "theme"
+    ],
     "author": "",
     "license": "Apache-2.0",
     "bugs": {
@@ -25,7 +29,6 @@
         "markdown-to-slides": "1.0.5",
         "matchdep": "2.0.0",
         "optimist": "^0.6.1",
-        "remark": "11.0.2",
-        "wmsicon": "wavemaker/wmsicon"
+        "remark": "11.0.2"
     }
 }
